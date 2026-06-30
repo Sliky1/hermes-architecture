@@ -185,15 +185,19 @@ The `auto-update` command evaluates each axis independently:
 
 ## Query Model
 
-| Query                              | Path                           | Axis Type   |
-|------------------------------------|--------------------------------|-------------|
-| "What happened recently?"          | Last N entries in timeline     | Event       |
-| "How is she feeling?"              | Last 1 entry in god agent      | State       |
-| "What'd they say that day?"        | Session file for that date     | Event       |
-| "How's that project going?"        | Object file for that task      | State       |
-| "I remember something about..."    | Semantic search (cross-axis)   | Hybrid      |
-| "What's the system architecture?"  | Wiki concepts                  | Knowledge   |
-| "We discussed this knowledge"      | Wiki syntheses                 | Knowledge   |
+### Most queries don't need semantic search
+
+| Query                              | Path                           | Axis Type   | Needs Vector? |
+|------------------------------------|--------------------------------|-------------|---------------|
+| "What happened recently?"          | Last N entries in timeline     | Event       | ❌ Direct file read |
+| "How is she feeling?"              | Last 1 entry in god agent      | State       | ❌ Direct file read |
+| "What'd they say that day?"        | Session file for that date     | Event       | ❌ Direct file read |
+| "How's that project going?"        | Object file for that task      | State       | ❌ Direct file read |
+| "I remember something about..."    | Semantic search (cross-axis)   | Hybrid      | ✅ Only this one |
+| "What's the system architecture?"  | Wiki concepts                  | Knowledge   | ❌ File check |
+| "We discussed this knowledge"      | Wiki syntheses                 | Knowledge   | ❌ File check |
+
+Four axes are designed so that **the axis itself is the index** — no vector search needed for the most common queries. Semantic search (Layer 2) exists only for the fuzzy cross-axis case: "I remember something but I don't know which axis it's in."
 
 ---
 
@@ -269,9 +273,11 @@ Readable entries (Wiki Vault)
 
 4. **Designed for "memory" in the human sense.** Not a generic knowledge management tool — it's built for the relationship between a user and their AI. Timeline feel, state consistency, dialogue recall are core requirements, not afterthoughts.
 
-5. **One command writes all axes.** `auto-update` evaluates each axis independently and writes only what changed. No manual decisions needed.
+5. **Queries don't need vector search.** 90% of memory lookups resolve at the axis level with direct file reads. Semantic search exists only for fuzzy cross-axis queries.
 
-6. **Immutability where it matters.** Event-driven data is never modified — history is preserved exactly as it happened.
+6. **One command writes all axes.** `auto-update` evaluates each axis independently and writes only what changed. No manual decisions needed.
+
+7. **Immutability where it matters.** Event-driven data is never modified — history is preserved exactly as it happened.
 
 ---
 

@@ -2,34 +2,37 @@
 
 ## Core Distinction: Event-Driven vs State-Driven
 
-The four axes are grouped by their persistence strategy, not just by their content type.
+The three axes are grouped by their persistence strategy, not just by their content type.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Four Axes (Raw Data Layer)                │
+│                 Three Axes (Raw Data Layer)                  │
 │                                                             │
 │  ┌──── EVENT-DRIVEN ─────┐  ┌──── STATE-DRIVEN ──────┐    │
 │  │                       │  │                         │    │
-│  │     Timeline          │  │      God Agent          │    │
-│  │   append-only         │  │   last-write-wins       │    │
-│  │   immutable history   │  │   current snapshot      │    │
-│  │   "what happened"     │  │   "how I'm feeling"     │    │
+│  │     Center Axis       │  │      Hermes Axis        │    │
+│  │   ├─ Time Index       │  │   last-write-wins       │    │
+│  │   │  (append-only)    │  │   current state         │    │
+│  │   ├─ Conv Archive     │  │   + queryable rules     │    │
+│  │      (append-only)    │  │   + skill_map           │    │
+│  │                       │  │   + system snapshots    │    │
+│  │   "what happened"     │  │   "current status"      │    │
+│  │   + "exact words"     │  │   + "how to behave"     │    │
 │  ├───────────────────────┤  ├─────────────────────────┤    │
-│  │     Session           │  │      Object             │    │
-│  │   append-only         │  │   append changelog      │    │
-│  │   raw dialogue        │  │   task transitions      │    │
-│  │   "exact words"       │  │   "project status"      │    │
+│  │     Object Axis       │  │                         │    │
+│  │   append changelog    │  │                         │    │
+│  │   task transitions    │  │                         │    │
+│  │   "project status"    │  │                         │    │
 │  └───────────────────────┘  └─────────────────────────┘    │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                            ▼
 ┌──────────────────────────────────────────────────────────────┐
-│              LanceDB (Semantic Retrieval Layer)               │
+│   Semantic Retrieval (LanceDB / FTS5) / Knowledge API Layer  │
 │                                                              │
 │  Cross-axis semantic search: "I remember something about..." │
-│  extract-fact → embed → search                               │
+│  extract-fact → embed → search OR jieba FTS5 direct         │
 │                                                              │
-│  When you don't remember which axis it's in                  │
 └──────────────────────────┬───────────────────────────────────┘
                            │
                            ▼
@@ -43,32 +46,40 @@ The four axes are grouped by their persistence strategy, not just by their conte
 └──────────────────────────────────────────────────────────────┘
 ```
 
+## Why Merge Timeline and Session?
+
+Both are event-driven, append-only. They always co-occur: every conversation creates both a time-line entry ("user said something") and a dialogue archive entry ("exact words"). Keeping them separate meant writing two append-only files per turn with overlapping metadata. Merging into Center Axis reduces write operations by 50% and simplifies the query path: "what happened" and "exact words" live under one axis, queryable together or separately by type filter.
+
+## Why Timeline + Session Merge Works
+
+- Both are event-driven → no conflict in persistence strategy
+- Both use append-only → no overwrite risk
+- Together they form a complete record: "when" (time-index) + "what was said" (conversation)
+- Event-driven principle preserved: history is still immutable
+
 ## Data Flow
 
 ```
 User Message
    ↓ Always write
-Session Axis (raw dialogue archive)
+Center Axis (time index + conversation archive)
    ↓ Auto-evaluate
-┌── State change? → God Agent Axis (last-write-wins)
-├── Important event? → Timeline Axis (append-only)
-├── Task progress? → Object Axis (changelog)
-└── Knowledge to extract? → extract-fact
+├── State/rule change? → Hermes Axis (user state + rules query)
+├── Task progress? → Object Axis (task changelog)
+├── Knowledge to extract? → extract-fact
         ↓
-LanceDB vectorization (cross-axis semantic search)
+  Semantic search (FTS5 / Vector / External Web fallback)
         ↓
-  importance ≥ 4? → Wiki Vault (readable knowledge)
+  importance ≥ 4? → Wiki Vault
 ```
 
 ## Update Rules
 
-| Axis   | Driving | When                | How                | Strategy       |
-|--------|---------|---------------------|--------------------|----------------|
-| Session| Event   | Every reply         | `--msg "text"`     | Append-only    |
-| God    | State   | On state change     | `--state '{}'`     | Last-write-wins|
-| Timeline| Event  | On important event  | `--event "name"`   | Append-only    |
-| Object | State   | On task progress    | Manual jsonl write | Append changelog|
-| Static | —       | Auto scan           | `check-static`     | Append-only    |
+| Axis   | Driving | When | How | Strategy |
+|--------|---------|------|-----|----------|
+| Center | Event   | Every reply | auto-write | Append-only (time-index + conv archive) |
+| Hermes | State   | On state/rule change | auto-update + rule query | Last-write-wins |
+| Object | State   | On task progress | Manual or auto | Append changelog |
 
 ## One Command
 
@@ -79,3 +90,5 @@ python3 autofour_v2.py --mode auto-update \
   --msg "dialog text" \
   --auto-state
 ```
+
+The command auto-evaluates all three axes independently.

@@ -1,5 +1,0 @@
-{"ts": "2026-06-13T10:00:00+08:00", "event": "System Initialization", "level": "milestone", "summary": "First memory system deployment"}
-{"ts": "2026-06-15T14:30:00+08:00", "event": "Channel Integration", "level": "important", "summary": "Integrated Telegram channel"}
-{"ts": "2026-06-18T09:00:00+08:00", "event": "Feature Upgrade", "level": "daily", "summary": "Auto item inventory scanning launched"}
-{"ts": "2026-06-20T22:00:00+08:00", "event": "Semantic Retrieval", "level": "milestone", "summary": "LanceDB semantic retrieval layer connected"}
-{"ts": "2026-06-21T22:54:45+08:00", "event": "System Upgrade", "level": "milestone", "summary": "All three memory layers automated"}

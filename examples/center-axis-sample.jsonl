@@ -1,0 +1,8 @@
+{"ts": "2026-06-13T10:00:00+08:00", "type": "time_event", "event": "System Initialization", "level": "milestone", "summary": "First memory system deployment"}
+{"ts": "2026-06-15T14:30:00+08:00", "type": "time_event", "event": "Channel Integration", "level": "important", "summary": "Integrated Telegram channel"}
+{"ts": "2026-06-22T09:21:00+08:00", "type": "conversation", "who": "user", "msg": "Good morning", "channel": "telegram", "session_id": "sess_001"}
+{"ts": "2026-06-22T09:21:05+08:00", "type": "conversation", "who": "agent", "msg": "Morning! Nice weather today", "channel": "telegram", "session_id": "sess_001"}
+{"ts": "2026-06-22T09:22:00+08:00", "type": "conversation", "who": "user", "msg": "Check my schedule for today", "channel": "telegram", "session_id": "sess_001"}
+{"ts": "2026-06-22T09:22:10+08:00", "type": "conversation", "who": "agent", "msg": "No special schedule today", "channel": "telegram", "session_id": "sess_001"}
+{"ts": "2026-06-20T22:00:00+08:00", "type": "time_event", "event": "Semantic Retrieval", "level": "milestone", "summary": "FTS5/vector semantic retrieval layer connected"}
+{"ts": "2026-06-21T22:54:45+08:00", "type": "time_event", "event": "System Upgrade", "level": "milestone", "summary": "All three memory layers automated"}
